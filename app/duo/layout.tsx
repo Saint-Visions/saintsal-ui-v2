@@ -1,6 +1,6 @@
 // app/duo/layout.tsx
 import React from "react"
-import "../../globals.css" // ✅ Make sure global styles are applied
+import "@/app/globals.css"
 
 export default function DuoLayout({ children }: { children: React.ReactNode }) {
   return (
