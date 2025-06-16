@@ -1,9 +1,10 @@
 "use client"
-
-import { ChatbotUISVG } from "@/components/icons/chatbotui-svg"
-import { IconArrowRight } from "@tabler/icons-react"
 import { useTheme } from "next-themes"
+
+import { ChatbotUISVG } from "../../components/icons/chatbotui-svg"
 import Link from "next/link"
+// import { IconArrowRight } from "../../components/icons/icon-arrow-right";
+import { IconArrowRight } from "@tabler/icons-react"
 
 export default function HomePage() {
   const { theme } = useTheme()

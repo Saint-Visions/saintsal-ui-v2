@@ -226,7 +226,7 @@ export const SidebarDataList: FC<SidebarDataListProps> = ({
       >
         {data.length === 0 && (
           <div className="flex grow flex-col items-center justify-center">
-            <div className=" text-centertext-muted-foreground p-8 text-lg italic">
+            <div className="text-centertext-muted-foreground p-8 text-lg italic">
               No {contentType}.
             </div>
           </div>
@@ -277,7 +277,7 @@ export const SidebarDataList: FC<SidebarDataListProps> = ({
                     return (
                       sortedData.length > 0 && (
                         <div key={dateCategory} className="pb-2">
-                          <div className="text-muted-foreground mb-1 text-sm font-bold">
+                          <div className="mb-1 text-sm font-bold text-muted-foreground">
                             {dateCategory}
                           </div>
 

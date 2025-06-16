@@ -4,34 +4,38 @@ import { createClient } from "@supabase/supabase-js"
 export const runtime = "edge"
 
 export async function POST(request: Request) {
-  const json = await request.json()
-  const { username } = json as {
-    username: string
+  const { username } = await request.json()
+
+  if (!username) {
+    return new Response(JSON.stringify({ message: "Username is required." }), {
+      status: 400
+    })
   }
 
   try {
-    const supabaseAdmin = createClient<Database>(
+    const supabase = createClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    const { data: usernames, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from("profiles")
       .select("username")
       .eq("username", username)
 
-    if (!usernames) {
-      throw new Error(error.message)
+    if (error) {
+      throw error
     }
 
-    return new Response(JSON.stringify({ isAvailable: !usernames.length }), {
+    const isAvailable = data.length === 0
+
+    return new Response(JSON.stringify({ isAvailable }), {
       status: 200
     })
   } catch (error: any) {
-    const errorMessage = error.error?.message || "An unexpected error occurred"
-    const errorCode = error.status || 500
-    return new Response(JSON.stringify({ message: errorMessage }), {
-      status: errorCode
+    console.error("Username check failed:", error.message || error)
+    return new Response(JSON.stringify({ message: "Internal Server Error" }), {
+      status: 500
     })
   }
 }

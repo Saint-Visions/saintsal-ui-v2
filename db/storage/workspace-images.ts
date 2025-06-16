@@ -6,17 +6,18 @@ export const uploadWorkspaceImage = async (
   image: File
 ) => {
   const bucket = "workspace_images"
-
   const imageSizeLimit = 6000000 // 6MB
+
+  if (!image) return
 
   if (image.size > imageSizeLimit) {
     throw new Error(`Image must be less than ${imageSizeLimit / 1000000}MB`)
   }
 
   const currentPath = workspace.image_path
-  let filePath = `${workspace.user_id}/${workspace.id}/${Date.now()}`
+  const filePath = `${workspace.user_id}/${workspace.id}/${Date.now()}`
 
-  if (currentPath.length > 0) {
+  if (currentPath && currentPath.length > 0) {
     const { error: deleteError } = await supabase.storage
       .from(bucket)
       .remove([currentPath])
@@ -43,14 +44,13 @@ export const getWorkspaceImageFromStorage = async (filePath: string) => {
   try {
     const { data, error } = await supabase.storage
       .from("workspace_images")
-      .createSignedUrl(filePath, 60 * 60 * 24) // 24hrs
+      .createSignedUrl(filePath, 60 * 60 * 24) // 24 hours
 
-    if (error) {
-      throw new Error("Error downloading workspace image")
-    }
+    if (error) throw new Error("Error downloading workspace image")
 
     return data.signedUrl
   } catch (error) {
     console.error(error)
+    return undefined
   }
 }

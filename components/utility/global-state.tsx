@@ -6,6 +6,20 @@ import { ChatbotUIContext } from "@/context/context"
 import { getProfileByUserId } from "@/db/profile"
 import { getWorkspaceImageFromStorage } from "@/db/storage/workspace-images"
 import { getWorkspacesByUserId } from "@/db/workspaces"
+import { AssistantImage } from "@/types/images/assistant-image"
+// import { Tables } from "@/types/supabase" // <-- Add this import, adjust the path if needed
+// import { Tables } from "@/types/supabase"
+// import { Tables } from "@/types/supabase"
+// Update the import path below if your supabase types are located elsewhere:
+// Update the import path below if your supabase types are located elsewhere:
+// import { Tables } from "@/types/supabase"
+// Update the import path below if your supabase types are located elsewhere:
+import { Tables } from "@/supabase/types"
+
+interface GlobalStateProps {
+  children: React.ReactNode
+}
+
 import { convertBlobToBase64 } from "@/lib/blob-to-b64"
 import {
   fetchHostedModels,
@@ -13,7 +27,6 @@ import {
   fetchOpenRouterModels
 } from "@/lib/models/fetch-models"
 import { supabase } from "@/lib/supabase/browser-client"
-import { Tables } from "@/supabase/types"
 import {
   ChatFile,
   ChatMessage,
@@ -23,10 +36,9 @@ import {
   OpenRouterLLM,
   WorkspaceImage
 } from "@/types"
-import { AssistantImage } from "@/types/images/assistant-image"
 import { VALID_ENV_KEYS } from "@/types/valid-keys"
 import { useRouter } from "next/navigation"
-import { FC, useEffect, useState } from "react"
+import { FC, useEffect, useState, useCallback } from "react"
 
 interface GlobalStateProps {
   children: React.ReactNode
@@ -123,36 +135,9 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   const [selectedTools, setSelectedTools] = useState<Tables<"tools">[]>([])
   const [toolInUse, setToolInUse] = useState<string>("none")
 
-  useEffect(() => {
-    ;(async () => {
-      const profile = await fetchStartingData()
+  // removed misplaced import
 
-      if (profile) {
-        const hostedModelRes = await fetchHostedModels(profile)
-        if (!hostedModelRes) return
-
-        setEnvKeyMap(hostedModelRes.envKeyMap)
-        setAvailableHostedModels(hostedModelRes.hostedModels)
-
-        if (
-          profile["openrouter_api_key"] ||
-          hostedModelRes.envKeyMap["openrouter"]
-        ) {
-          const openRouterModels = await fetchOpenRouterModels()
-          if (!openRouterModels) return
-          setAvailableOpenRouterModels(openRouterModels)
-        }
-      }
-
-      if (process.env.NEXT_PUBLIC_OLLAMA_URL) {
-        const localModels = await fetchOllamaModels()
-        if (!localModels) return
-        setAvailableLocalModels(localModels)
-      }
-    })()
-  }, [])
-
-  const fetchStartingData = async () => {
+  const fetchStartingData = useCallback(async () => {
     const session = (await supabase.auth.getSession()).data.session
 
     if (session) {
@@ -195,7 +180,36 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
 
       return profile
     }
-  }
+  }, [router, setProfile, setWorkspaces, setWorkspaceImages])
+
+  useEffect(() => {
+    ;(async () => {
+      const profile = await fetchStartingData()
+
+      if (profile) {
+        const hostedModelRes = await fetchHostedModels(profile)
+        if (!hostedModelRes) return
+
+        setEnvKeyMap(hostedModelRes.envKeyMap)
+        setAvailableHostedModels(hostedModelRes.hostedModels)
+
+        if (
+          profile["openrouter_api_key"] ||
+          hostedModelRes.envKeyMap["openrouter"]
+        ) {
+          const openRouterModels = await fetchOpenRouterModels()
+          if (!openRouterModels) return
+          setAvailableOpenRouterModels(openRouterModels)
+        }
+      }
+
+      if (process.env.NEXT_PUBLIC_OLLAMA_URL) {
+        const localModels = await fetchOllamaModels()
+        if (!localModels) return
+        setAvailableLocalModels(localModels)
+      }
+    })()
+  }, [fetchStartingData])
 
   return (
     <ChatbotUIContext.Provider

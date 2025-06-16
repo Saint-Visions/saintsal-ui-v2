@@ -66,11 +66,11 @@ export const viewport: Viewport = {
 
 const i18nNamespaces = ["translation"]
 
-export default async function RootLayout({
-  children,
-  params: { locale }
-}: RootLayoutProps) {
-  const cookieStore = cookies()
+export default async function RootLayout(props: RootLayoutProps) {
+  const { children, params } = props
+  const { locale } = await props.params
+
+  const cookieStore = await cookies()
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -82,6 +82,7 @@ export default async function RootLayout({
       }
     }
   )
+
   const session = (await supabase.auth.getSession()).data.session
 
   const { t, resources } = await initTranslations(locale, i18nNamespaces)
@@ -95,8 +96,8 @@ export default async function RootLayout({
             locale={locale}
             resources={resources}
           >
-            <Toaster richColors position="top-center" duration={3000} />
-            <div className="bg-background text-foreground flex h-dvh flex-col items-center overflow-x-auto">
+            <Toaster />
+            <div className="flex h-dvh flex-col items-center overflow-x-auto bg-background text-foreground">
               {session ? <GlobalState>{children}</GlobalState> : children}
             </div>
           </TranslationsProvider>

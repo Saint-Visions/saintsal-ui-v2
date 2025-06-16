@@ -25,12 +25,14 @@ export default async function Login({
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
+        async get(name: string) {
+          const store = await cookieStore
+          return store.get(name)?.value
         }
       }
     }
   )
+
   const session = (await supabase.auth.getSession()).data.session
 
   if (session) {
@@ -39,10 +41,10 @@ export default async function Login({
       .select("*")
       .eq("user_id", session.user.id)
       .eq("is_home", true)
-      .single()
+      .maybeSingle() // ✅ safe even if no rows or duplicates
 
     if (!homeWorkspace) {
-      throw new Error(error.message)
+      throw new Error(error?.message || "Home workspace not found")
     }
 
     return redirect(`/${homeWorkspace.id}/chat`)
@@ -70,7 +72,7 @@ export default async function Login({
       .select("*")
       .eq("user_id", data.user.id)
       .eq("is_home", true)
-      .single()
+      .maybeSingle() // ✅ also safe here
 
     if (!homeWorkspace) {
       throw new Error(
@@ -86,8 +88,7 @@ export default async function Login({
     if (process.env.EDGE_CONFIG) {
       return await get<string>(name)
     }
-
-    return process.env[name]
+    return Promise.resolve(process.env[name])
   }
 
   const signUp = async (formData: FormData) => {
@@ -100,18 +101,19 @@ export default async function Login({
       "EMAIL_DOMAIN_WHITELIST"
     )
     const emailDomainWhitelist = emailDomainWhitelistPatternsString?.trim()
-      ? emailDomainWhitelistPatternsString?.split(",")
+      ? emailDomainWhitelistPatternsString.split(",")
       : []
+
     const emailWhitelistPatternsString =
       await getEnvVarOrEdgeConfigValue("EMAIL_WHITELIST")
     const emailWhitelist = emailWhitelistPatternsString?.trim()
-      ? emailWhitelistPatternsString?.split(",")
+      ? emailWhitelistPatternsString.split(",")
       : []
 
-    // If there are whitelist patterns, check if the email is allowed to sign up
+    // Check whitelist
     if (emailDomainWhitelist.length > 0 || emailWhitelist.length > 0) {
-      const domainMatch = emailDomainWhitelist?.includes(email.split("@")[1])
-      const emailMatch = emailWhitelist?.includes(email)
+      const domainMatch = emailDomainWhitelist.includes(email.split("@")[1])
+      const emailMatch = emailWhitelist.includes(email)
       if (!domainMatch && !emailMatch) {
         return redirect(
           `/login?message=Email ${email} is not allowed to sign up.`
@@ -124,28 +126,24 @@ export default async function Login({
 
     const { error } = await supabase.auth.signUp({
       email,
-      password,
-      options: {
-        // USE IF YOU WANT TO SEND EMAIL VERIFICATION, ALSO CHANGE TOML FILE
-        // emailRedirectTo: `${origin}/auth/callback`
-      }
+      password
+      // If you want email verification:
+      // options: {
+      //   emailRedirectTo: `${origin}/auth/callback`
+      // }
     })
 
     if (error) {
-      console.error(error)
       return redirect(`/login?message=${error.message}`)
     }
 
     return redirect("/setup")
-
-    // USE IF YOU WANT TO SEND EMAIL VERIFICATION, ALSO CHANGE TOML FILE
-    // return redirect("/login?message=Check email to continue sign in process")
   }
 
   const handleResetPassword = async (formData: FormData) => {
     "use server"
 
-    const origin = headers().get("origin")
+    const origin = (await headers()).get("origin")
     const email = formData.get("email") as string
     const cookieStore = cookies()
     const supabase = createClient(cookieStore)
@@ -164,7 +162,7 @@ export default async function Login({
   return (
     <div className="flex w-full flex-1 flex-col justify-center gap-2 px-8 sm:max-w-md">
       <form
-        className="animate-in text-foreground flex w-full flex-1 flex-col justify-center gap-2"
+        className="flex w-full flex-1 flex-col justify-center gap-2 text-foreground animate-in"
         action={signIn}
       >
         <Brand />
@@ -187,6 +185,7 @@ export default async function Login({
           type="password"
           name="password"
           placeholder="••••••••"
+          required
         />
 
         <SubmitButton className="mb-2 rounded-md bg-blue-700 px-4 py-2 text-white">
@@ -195,23 +194,23 @@ export default async function Login({
 
         <SubmitButton
           formAction={signUp}
-          className="border-foreground/20 mb-2 rounded-md border px-4 py-2"
+          className="mb-2 rounded-md border border-foreground/20 px-4 py-2"
         >
           Sign Up
         </SubmitButton>
 
-        <div className="text-muted-foreground mt-1 flex justify-center text-sm">
+        <div className="mt-1 flex justify-center text-sm text-muted-foreground">
           <span className="mr-1">Forgot your password?</span>
           <button
             formAction={handleResetPassword}
-            className="text-primary ml-1 underline hover:opacity-80"
+            className="ml-1 text-primary underline hover:opacity-80"
           >
             Reset
           </button>
         </div>
 
         {searchParams?.message && (
-          <p className="bg-foreground/10 text-foreground mt-4 p-4 text-center">
+          <p className="mt-4 bg-foreground/10 p-4 text-center text-foreground">
             {searchParams.message}
           </p>
         )}
