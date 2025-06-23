@@ -97,6 +97,7 @@ export default async function RootLayout(props: RootLayoutProps) {
             resources={resources}
           >
             <Toaster />
+            {/* eslint-disable-next-line tailwindcss/classnames-order */}
             <div className="flex h-dvh flex-col items-center overflow-x-auto bg-background text-foreground">
               {session ? <GlobalState>{children}</GlobalState> : children}
             </div>

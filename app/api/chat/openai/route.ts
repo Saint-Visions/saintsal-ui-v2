@@ -1,4 +1,7 @@
-import { openaiStream, StreamingTextResponse } from "ai"
+import { openaiStream } from "ai"
+// import { StreamingTextResponse } from "ai"
+import { StreamingTextResponse } from "ai-edge"
+import { NextResponse } from "next/server"
 import OpenAI from "openai"
 import { createClient } from "@supabase/supabase-js"
 import { saveUserChat, logAssistantReply } from "@/lib/memory"
@@ -35,7 +38,7 @@ export async function POST(req: Request) {
     messages
   })
 
-  const stream = openaiStream(response, {
+  const stream: ReadableStream<Uint8Array> = openaiStream(response, {
     async onCompletion(completion: string) {
       await supabase.from("messages").insert({
         workspace_id,

@@ -1,4 +1,11 @@
 {
+  "name": "SaintSal™ AI Console",
+  "short_name": "SaintSal",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#10161C",
+  "theme_color": "#10161C",
+  "description": "Cookin’ Knowledge. Powered by Dual AI.",
   "icons": [
     {
       "src": "/favicon-192x192.png",
@@ -14,6 +21,12 @@
       "src": "/favicon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "/favicon-light.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

@@ -41,7 +41,7 @@ export const programmingLanguages: languageMap = {
 }
 
 export const generateRandomString = (length: number, lowercase = false) => {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXY3456789" // excluding similar looking characters like Z, 2, I, 1, O, 0
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXY3456789"
   let result = ""
   for (let i = 0; i < length; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length))
@@ -54,19 +54,11 @@ export const MessageCodeBlock: FC<MessageCodeBlockProps> = memo(
     const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 2000 })
 
     const downloadAsFile = () => {
-      if (typeof window === "undefined") {
-        return
-      }
+      if (typeof window === "undefined") return
       const fileExtension = programmingLanguages[language] || ".file"
-      const suggestedFileName = `file-${generateRandomString(
-        3,
-        true
-      )}${fileExtension}`
+      const suggestedFileName = `file-${generateRandomString(3, true)}${fileExtension}`
       const fileName = window.prompt("Enter file name", suggestedFileName)
-
-      if (!fileName) {
-        return
-      }
+      if (!fileName) return
 
       const blob = new Blob([value], { type: "text/plain" })
       const url = URL.createObjectURL(blob)
@@ -98,7 +90,6 @@ export const MessageCodeBlock: FC<MessageCodeBlockProps> = memo(
             >
               <IconDownload size={16} />
             </Button>
-
             <Button
               variant="ghost"
               size="icon"
@@ -112,7 +103,6 @@ export const MessageCodeBlock: FC<MessageCodeBlockProps> = memo(
         <SyntaxHighlighter
           language={language}
           style={oneDark}
-          // showLineNumbers
           customStyle={{
             margin: 0,
             width: "100%",
