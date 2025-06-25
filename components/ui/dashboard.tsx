@@ -12,6 +12,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { FC, useState } from "react"
 import { useSelectFileHandler } from "../chat/chat-hooks/use-select-file-handler"
 import { CommandK } from "../utility/command-k"
+import styles from "./dashboard.module.css"
 
 export const SIDEBAR_WIDTH = 350
 
@@ -70,17 +71,12 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
   return (
     <div className="flex size-full">
       <CommandK />
-
       <div
         className={cn(
-          "duration-200 dark:border-none " + (showSidebar ? "border-r-2" : "")
+          "dashboard-sidebar duration-200 dark:border-none " +
+            (showSidebar ? "border-r-2" : "")
         )}
-        style={{
-          // Sidebar
-          minWidth: showSidebar ? `${SIDEBAR_WIDTH}px` : "0px",
-          maxWidth: showSidebar ? `${SIDEBAR_WIDTH}px` : "0px",
-          width: showSidebar ? `${SIDEBAR_WIDTH}px` : "0px"
-        }}
+        data-show-sidebar={showSidebar}
       >
         {showSidebar && (
           <Tabs

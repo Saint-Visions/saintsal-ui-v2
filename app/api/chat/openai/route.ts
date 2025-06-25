@@ -1,6 +1,7 @@
+// import { openaiStream } from "ai/openai"
 import { openaiStream } from "ai"
 // import { StreamingTextResponse } from "ai"
-import { StreamingTextResponse } from "ai"
+import { StreamingTextResponse } from "ai/respond"
 import { NextResponse } from "next/server"
 import OpenAI from "openai"
 import { createClient } from "@supabase/supabase-js"
